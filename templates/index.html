@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time System Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script> <!-- For animations -->
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Real-Time System Monitor</h1>
+        </header>
+
+        <section class="content">
+            <div class="status-box">
+                <h3>Suspicious Processes</h3>
+                <ul id="process-list">
+                    <!-- Processes will be dynamically added here -->
+                </ul>
+            </div>
+
+            <div class="status-box">
+                <h3>Suspicious Network Connections</h3>
+                <ul id="network-list">
+                    <!-- Network connections will be dynamically added here -->
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Connect to SocketIO server
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Handle real-time updates for suspicious processes
+        socket.on('update_processes', function(data) {
+            let processList = document.getElementById('process-list');
+            processList.innerHTML = '';  // Clear existing list
+
+            data.data.forEach(function(proc) {
+                let li = document.createElement('li');
+                li.textContent = `${proc.name} (PID: ${proc.pid})`;
+
+                // Add animation to the new list item
+                processList.appendChild(li);
+                gsap.from(li, { opacity: 0, duration: 0.5, y: -20 });
+            });
+        });
+
+        // Handle real-time updates for suspicious network connections
+        socket.on('update_network_connections', function(data) {
+            let networkList = document.getElementById('network-list');
+            networkList.innerHTML = '';  // Clear existing list
+
+            data.data.forEach(function(conn) {
+                let li = document.createElement('li');
+                li.textContent = `Local: ${conn.local_ip}:${conn.pid} → Remote: ${conn.remote_ip}`;
+
+                // Add animation to the new list item
+                networkList.appendChild(li);
+                gsap.from(li, { opacity: 0, duration: 0.5, y: -20 });
+            });
+        });
+    </script>
+</body>
+</html>
